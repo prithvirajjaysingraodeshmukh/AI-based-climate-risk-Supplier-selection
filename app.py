@@ -61,17 +61,22 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-@st.cache_data
 def load_commodity_data(commodity):
-    """Load or generate data for a commodity"""
+    """Load data for a commodity (with backward compatibility)"""
+    # Try new format first
     data_file = f'outputs/supplier_rankings_{commodity.lower().replace(" ", "_")}.csv'
     if os.path.exists(data_file):
         return pd.read_csv(data_file)
+    
+    # Backward compatibility: if Coffee and old file exists, use it
+    if commodity == 'Coffee' and os.path.exists('outputs/supplier_rankings.csv'):
+        return pd.read_csv('outputs/supplier_rankings.csv')
+    
     return None
 
-@st.cache_resource
 def load_model(commodity):
-    """Load trained model for commodity"""
+    """Load trained model for commodity (with backward compatibility)"""
+    # Try new format first
     model_file = f'models/climate_risk_model_{commodity.lower().replace(" ", "_")}.pkl'
     if os.path.exists(model_file):
         try:
@@ -80,6 +85,16 @@ def load_model(commodity):
             return predictor
         except:
             return None
+    
+    # Backward compatibility: if Coffee and old model exists, use it
+    if commodity == 'Coffee' and os.path.exists('models/climate_risk_model.pkl'):
+        try:
+            predictor = ClimateRiskPredictor()
+            predictor.load_model('models/climate_risk_model.pkl')
+            return predictor
+        except:
+            return None
+    
     return None
 
 def generate_data_for_commodity(commodity):
@@ -157,15 +172,27 @@ def main():
     model = load_model(selected_commodity)
     
     if df is None:
-        st.info(f"📦 Data for {selected_commodity} not found. Generating now...")
-        if st.button("Generate Data", type="primary"):
-            df, model, _ = generate_data_for_commodity(selected_commodity)
-            st.success("Data generated successfully! Please refresh.")
-            st.rerun()
+        st.warning(f"📦 Data for **{selected_commodity}** not found.")
+        st.info("Click the button below to generate data for this commodity. This may take a minute.")
+        
+        if st.button("🔧 Generate Data", type="primary", use_container_width=True):
+            try:
+                with st.spinner(f"Generating data for {selected_commodity}... This may take 30-60 seconds."):
+                    df, model, _ = generate_data_for_commodity(selected_commodity)
+                    st.success(f"✅ Data for {selected_commodity} generated successfully!")
+                    st.rerun()
+            except Exception as e:
+                st.error(f"❌ Error generating data: {str(e)}")
+                st.exception(e)
         st.stop()
     
+    # Display loaded commodity info
     st.sidebar.success(f"✅ Loaded: {selected_commodity}")
-    st.sidebar.markdown(f"**Countries:** {', '.join(df['country'].unique()[:3])}...")
+    countries_list = df['country'].unique()[:3].tolist()
+    if len(df['country'].unique()) > 3:
+        st.sidebar.markdown(f"**Countries:** {', '.join(countries_list)}... (+{len(df['country'].unique())-3} more)")
+    else:
+        st.sidebar.markdown(f"**Countries:** {', '.join(countries_list)}")
     
     # Weight Adjustment
     st.sidebar.header("📊 Ranking Weights")
@@ -190,7 +217,17 @@ def main():
         st.sidebar.success("✅ Weights valid")
     
     # Recalculate rankings with custom weights if needed
-    if abs(total_weight - 1.0) < 0.01:
+    # Check if weights differ from defaults (0.25, 0.25, 0.20, 0.30)
+    default_weights = {'cost': 0.25, 'lead_time': 0.25, 'quality': 0.20, 'climate_risk': 0.30}
+    weights_match_default = (
+        abs(weight_cost - default_weights['cost']) < 0.001 and
+        abs(weight_leadtime - default_weights['lead_time']) < 0.001 and
+        abs(weight_quality - default_weights['quality']) < 0.001 and
+        abs(weight_climate - default_weights['climate_risk']) < 0.001
+    )
+    
+    if abs(total_weight - 1.0) < 0.01 and not weights_match_default:
+        # Recalculate with custom weights
         custom_weights = {
             'cost': weight_cost,
             'lead_time': weight_leadtime,
@@ -200,6 +237,7 @@ def main():
         ranker = SupplierRanker(weights=custom_weights)
         df_ranked = ranker.calculate_supplier_scores(df, df['predicted_climate_risk'].values)
     else:
+        # Use existing rankings from file
         df_ranked = df.copy()
     
     # Filters
