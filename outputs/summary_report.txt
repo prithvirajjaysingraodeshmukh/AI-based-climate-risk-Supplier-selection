@@ -1,0 +1,54 @@
+
+======================================================================
+AI-BASED CLIMATE RISK-AWARE SUPPLIER SELECTION - SUMMARY REPORT
+Commodity: Coffee
+======================================================================
+
+MODEL PERFORMANCE:
+------------------
+Accuracy: 0.9800 (98.00%)
+
+Feature Importance:
+                feature  importance
+avg_temperature_celsius    0.444095
+extreme_events_per_year    0.322192
+   rainfall_mm_per_year    0.233713
+
+TOP 10 SUPPLIERS:
+-----------------
+ rank        supplier_name  country  cost_per_unit_usd  lead_time_days  quality_score predicted_climate_risk  composite_score
+    1  Colombia_Supplier_8 Colombia               4.67              22          0.951                    Low           0.8473
+    2 Colombia_Supplier_45 Colombia               4.35              23          0.906                    Low           0.8449
+    3 Colombia_Supplier_39 Colombia               4.46              21          0.872                    Low           0.8377
+    4  Colombia_Supplier_3 Colombia               4.57              25          0.943                    Low           0.8292
+    5   Brazil_Supplier_30   Brazil               3.65              25          0.778                    Low           0.8291
+    6 Honduras_Supplier_48 Honduras               3.82              27          0.829                    Low           0.8228
+    7   Brazil_Supplier_37   Brazil               3.58              27          0.782                    Low           0.8211
+    8 Colombia_Supplier_48 Colombia               4.99              21          0.919                    Low           0.8183
+    9 Colombia_Supplier_32 Colombia               5.04              20          0.902                    Low           0.8150
+   10  Colombia_Supplier_7 Colombia               4.23              29          0.914                    Low           0.8128
+
+COUNTRY RANKINGS (by average composite score):
+-----------------------------------------------
+          country_rank  composite_score  cost_per_unit_usd  lead_time_days  quality_score predicted_climate_risk
+country                                                                                                         
+Colombia             1         0.694387             4.9416           27.56        0.83514                    Low
+Brazil               2         0.649450             4.2054           34.84        0.75396                    Low
+Honduras             3         0.628678             4.3986           32.02        0.76028                 Medium
+Vietnam              4         0.562777             3.7942           39.96        0.69996                 Medium
+Ethiopia             5         0.562641             5.5958           43.36        0.89188                    Low
+
+CLIMATE RISK DISTRIBUTION:
+--------------------------
+Low       147
+Medium     93
+High       10
+
+OUTPUT FILES:
+-------------
+- Dataset: data/supplier_data.csv
+- Model: models/climate_risk_model.pkl
+- Rankings: outputs/supplier_rankings.csv
+- Visualizations: outputs/*.png
+
+======================================================================

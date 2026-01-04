@@ -1,0 +1,44 @@
+__pycache__/
+.env
+*.csv~
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data (optional - uncomment if you don't want to track data files)
+# data/*.csv
+
+# Models
+models/*.pkl
+models/*.h5
+models/*.joblib
+
+# Outputs (optional - uncomment if you don't want to track outputs)
+# outputs/*.png
+# outputs/*.csv
+# outputs/*.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
